@@ -6,12 +6,14 @@ ZENOH_REST_PORT := 8000
 
 # Default configuration - can be overridden via environment variables
 DOCKER_NETWORK := zenoh-net
+CONFIG_DIR := $(PWD)/cfg
 
-#.PHONY: help network start stop restart status logs clean
+.PHONY: help network start stop restart status logs clean init-config
 
 help:
 	@echo "Available commands:"
 	@echo "  make network     - Create Docker network for Zenoh"
+	@echo "  make init-config - Initialize configuration directory"
 	@echo "  make start      - Start Zenoh router container"
 	@echo "  make stop       - Stop Zenoh router container"
 	@echo "  make restart    - Restart Zenoh router container"
@@ -23,7 +25,11 @@ network:
 	@docker network inspect $(DOCKER_NETWORK) >/dev/null 2>&1 || \
 		docker network create $(DOCKER_NETWORK)
 
-start: network
+init-config:
+	@mkdir -p $(CONFIG_DIR)
+	@echo "Created configuration directory at $(CONFIG_DIR)"
+
+start: network init-config
 	@if [ "$$(docker ps -q -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
 		echo "Zenoh router is already running."; \
 	else \
@@ -35,7 +41,10 @@ start: network
 				--network $(DOCKER_NETWORK) \
 				-p $(ZENOH_PORT):$(ZENOH_PORT) \
 				-p $(ZENOH_REST_PORT):$(ZENOH_REST_PORT) \
-				$(ZENOH_IMAGE); \
+				-v $(CONFIG_DIR):/cfg \
+				$(ZENOH_IMAGE)  \
+				-c /cfg/zenoh-myhome.json5; \
+			echo "Started new conainter with cfg"; \
 		fi; \
 		echo "Zenoh router started."; \
 	fi
