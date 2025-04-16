@@ -1,7 +1,10 @@
 # Basic Example for Publisher, Subscriber and Query from a storage. 
 
 The code in this folder include
-1. Makefile to spin up, stop and clean a docker container running zenoh with configuration file in `cfg/zenoh-myhome.json5` which add a storage at `/myhome/**`
+1. Makefile to start zenoh with configuration file in `cfg/zenoh-myhome.json5` which add a storage at `/myhome/kitchen/temp`
+
+
+Note: I initially try to set up a docker image with zenoh a peer for storage manager but I could not yet overcome the problem that docker does not support UDP multicast. spin up, stop and clean a docker container running zenoh with 
 ```
 make start
 ```

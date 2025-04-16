@@ -1,76 +1,7 @@
-# Zenoh Docker configuration
-ZENOH_IMAGE := eclipse/zenoh:latest
-ZENOH_CONTAINER_NAME := zenoh-router
-ZENOH_PORT := 7447
-ZENOH_REST_PORT := 8000
-
-# Default configuration - can be overridden via environment variables
-DOCKER_NETWORK := zenoh-net
-CONFIG_DIR := $(PWD)/cfg
-
-.PHONY: help network start stop restart status logs clean init-config
-
 help:
 	@echo "Available commands:"
-	@echo "  make network     - Create Docker network for Zenoh"
-	@echo "  make init-config - Initialize configuration directory"
-	@echo "  make start      - Start Zenoh router container"
-	@echo "  make stop       - Stop Zenoh router container"
-	@echo "  make restart    - Restart Zenoh router container"
-	@echo "  make status     - Check status of Zenoh router container"
-	@echo "  make logs       - View Zenoh router logs"
-	@echo "  make clean      - Remove Zenoh router container and network"
+	@echo "  make start      - start a zenoh peer node with configuration in zenoh-myhome "
 
-network:
-	@docker network inspect $(DOCKER_NETWORK) >/dev/null 2>&1 || \
-		docker network create $(DOCKER_NETWORK)
 
-init-config:
-	@mkdir -p $(CONFIG_DIR)
-	@echo "Created configuration directory at $(CONFIG_DIR)"
-
-start: network init-config
-	@if [ "$$(docker ps -q -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
-		echo "Zenoh router is already running."; \
-	else \
-		if [ "$$(docker ps -aq -f status=exited -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
-			docker start $(ZENOH_CONTAINER_NAME); \
-		else \
-			docker run \
-				--name $(ZENOH_CONTAINER_NAME) \
-				--network $(DOCKER_NETWORK) \
-				-p $(ZENOH_PORT):$(ZENOH_PORT) \
-				-p $(ZENOH_REST_PORT):$(ZENOH_REST_PORT) \
-				-v $(CONFIG_DIR):/cfg \
-				$(ZENOH_IMAGE)  \
-				-c /cfg/zenoh-myhome.json5; \
-			echo "Started new conainter with cfg"; \
-		fi; \
-		echo "Zenoh router started."; \
-	fi
-
-stop:
-	@if [ "$$(docker ps -q -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
-		docker stop $(ZENOH_CONTAINER_NAME); \
-		echo "Zenoh router stopped."; \
-	else \
-		echo "Zenoh router is not running."; \
-	fi
-
-restart: stop start
-
-status:
-	@if [ "$$(docker ps -q -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
-		echo "Zenoh router is running."; \
-		docker ps -f name=$(ZENOH_CONTAINER_NAME); \
-	else \
-		echo "Zenoh router is not running."; \
-	fi
-
-logs:
-	@docker logs -f $(ZENOH_CONTAINER_NAME)
-
-clean: stop
-	@docker rm -f $(ZENOH_CONTAINER_NAME) 2>/dev/null || true
-	@docker network rm $(DOCKER_NETWORK) 2>/dev/null || true
-	@echo "Cleaned up Zenoh router container and network."
+start: 
+    zenoh -c ./cfg/zenoh-myhome.json5
