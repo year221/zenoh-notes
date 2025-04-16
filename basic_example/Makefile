@@ -36,7 +36,7 @@ start: network init-config
 		if [ "$$(docker ps -aq -f status=exited -f name=$(ZENOH_CONTAINER_NAME))" ]; then \
 			docker start $(ZENOH_CONTAINER_NAME); \
 		else \
-			docker run -d \
+			docker run \
 				--name $(ZENOH_CONTAINER_NAME) \
 				--network $(DOCKER_NETWORK) \
 				-p $(ZENOH_PORT):$(ZENOH_PORT) \
